@@ -39,7 +39,11 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
 };
 
 export const loginUser = async (req: Request, res: Response, next: NextFunction) => {
-    const { username, password } = req.body;
+    const user:PersonLogin = {
+        username: req.body.username,
+        password: req.body.password
+    };
+    const {username, password} = user;
     const connection = await connectionString();
     const query = 'SELECT "Person"."Id", "Person"."Username" FROM "Person" WHERE "Username" = $1 AND "Password" = $2';
     const values = [username, generateHash(password)]
@@ -67,7 +71,12 @@ export const checkAuth = async (req: Request, res: Response, next: NextFunction)
         }
         const decode = decodeToken(token);
         if (decode) {
-            res.json({ authenticated: true })
+            try{
+                const {userId, username} = decode;
+                res.json({authenticated: true, Id: userId, Username: username})
+            }catch(err){
+                res.json({ authenticated: false })
+            }
         }
     } catch (err) {
         res.json({ authenticated: false })
